@@ -1,190 +1,356 @@
-# Sanitizador de Dados para LLMs (foco em LGPD)
+# 🔐 Sanitizador de Dados para LLMs — LGPD
 
-Camada de **middleware local** que higieniza textos antes de enviá-los a APIs de modelos de linguagem (LLMs). Dados pessoais e informações corporativas sensíveis são substituídos por marcadores anônimos (`[CPF_1]`, `[EMPRESA_2]`...) **antes** de qualquer dado sair do seu computador. A resposta do modelo é restaurada localmente.
+Middleware local desenvolvido em Python para **identificar e sanitizar dados pessoais e informações sensíveis antes que sejam enviados para APIs de modelos de linguagem (LLMs)**.
 
-```
-texto bruto ──► sanitizador (local) ──► "Cliente [NOME_1], CPF [CPF_1]..." ──► LLM
-                       │                                                       │
-                       └── mapa marcador→valor (só em memória) ◄── restaurar ◄─┘
-```
+O projeto foi desenvolvido com foco em **privacidade, minimização de dados e segurança**, utilizando técnicas de pseudonimização para substituir informações sensíveis por marcadores antes do envio ao modelo.
 
-Somente biblioteca padrão do Python (3.9+). Nenhuma dependência obrigatória.
+> **Objetivo:** permitir o uso de LLMs em documentos que podem conter informações pessoais sem expor diretamente esses dados ao modelo.
 
 ---
 
-## Por que existe
+## 🎯 Problema
 
-Enviar nomes, CPFs, e-mails ou dados de clientes diretamente para uma API de IA pode violar princípios da LGPD (minimização, segurança, transferência internacional) e expor informações da empresa. Este projeto aplica **pseudonimização** (LGPD, art. 13, §4º) e **minimização** (art. 6º, III) na origem, e ainda exige **aprovação humana** antes do envio.
+O uso de ferramentas de Inteligência Artificial em ambientes profissionais pode envolver o envio de informações como:
 
-## O que é detectado
+* CPF e CNPJ;
+* nomes;
+* e-mails;
+* telefones;
+* endereços;
+* informações financeiras;
+* dados de empresas;
+* documentos internos;
+* informações potencialmente sensíveis.
 
-| Tipo | Como | Observação |
-|---|---|---|
-| CPF, CNPJ | regex + dígito verificador | Número formatado (`123.456.789-00`) ou após o rótulo `CPF:` é mascarado mesmo se inválido, pois um dado digitado errado ainda identifica a pessoa |
-| Cartão de crédito | regex + algoritmo de Luhn | 14 a 19 dígitos |
-| E-mail | regex | aceita `maria @ email.com` e `carlos@email` |
-| Telefone, CEP, IP | regex | formatos brasileiros |
-| URLs | regex | domínios internos revelam muito |
-| Valores em R$ | regex | também colunas `Valor`/`Preço`/`Total` de tabelas markdown |
-| Nomes, endereços, datas de nascimento, conta/agência, RG | **rótulos** (`Nome:`, `Endereço:`, `Conta:`...) | funciona com markdown (`**Nome:**`), MAIÚSCULAS e minúsculas |
-| Empresas, clientes, projetos, produtos | **lista sua** (`termos.json`) | o que regex não consegue adivinhar |
+Enviar esses dados diretamente para uma API de IA pode aumentar o risco de exposição de informações pessoais ou corporativas.
 
-O **mesmo dado em formatos diferentes recebe o mesmo marcador** (`João da Silva` = `joao da silva`; `123.456.789-00` = `12345678900`; `(33) 98888-1111` = `+55 33 98888-1111`), então o modelo ainda consegue perceber duplicatas sem saber quem é a pessoa.
+O Sanitizador atua como uma camada intermediária:
 
-## Camadas de proteção
-
-1. Termos próprios (`termos.json`)
-2. Campos rotulados (`Nome:`, `CPF:`, `Conta:`...)
-3. Padrões com validação (CPF, CNPJ, Luhn)
-4. URLs e valores monetários
-5. Gancho opcional para NER (spaCy, Presidio)
-6. **Verificação de resíduo**: alerta sobre nomes, CamelCase e números longos que sobraram
-7. **Bloqueio de dados sensíveis** (art. 11 LGPD: saúde, religião, sindicato, menores...)
-8. **Aprovação humana**: você vê o texto exato que será enviado
-9. **Mapa novo por documento**, apagado ao final (mesmo em caso de erro)
-10. **Auditoria** sem dados pessoais (hash e contagens)
+```text
+┌────────────────────┐
+│ Documento original │
+│ com dados pessoais │
+└─────────┬──────────┘
+          │
+          ▼
+┌─────────────────────────┐
+│      Sanitizador        │
+│                         │
+│ Regex + validações      │
+│ Termos personalizados   │
+│ Detecção de resíduos    │
+│ Dados sensíveis         │
+└─────────┬───────────────┘
+          │
+          ▼
+┌─────────────────────────┐
+│    Texto sanitizado     │
+│                         │
+│ CPF → [CPF_1]           │
+│ Nome → [NOME_1]         │
+│ Email → [EMAIL_1]       │
+└─────────┬───────────────┘
+          │
+          ▼
+┌────────────────────┐
+│        LLM         │
+│ recebe somente os  │
+│ dados sanitizados  │
+└─────────┬──────────┘
+          │
+          ▼
+┌────────────────────┐
+│ Resposta restaurada│
+│ localmente         │
+└────────────────────┘
+```
 
 ---
 
-## Instalação
+## ✨ Principais funcionalidades
+
+### 🔎 Detecção de dados
+
+O sistema identifica diferentes tipos de informações, incluindo:
+
+* CPF;
+* CNPJ;
+* cartões de crédito;
+* e-mails;
+* telefones;
+* CEP;
+* IP;
+* URLs;
+* valores monetários;
+* nomes;
+* endereços;
+* datas de nascimento;
+* contas e agências;
+* RG;
+* empresas;
+* clientes;
+* projetos;
+* produtos.
+
+A detecção combina **expressões regulares, validações específicas e listas de termos personalizadas**.
+
+---
+
+### 🛡️ Camadas de proteção
+
+O projeto utiliza múltiplas camadas para reduzir o risco de vazamento:
+
+1. Termos personalizados;
+2. Detecção de campos rotulados;
+3. Validação de CPF e CNPJ;
+4. Algoritmo de Luhn para cartões;
+5. Detecção de URLs e valores monetários;
+6. Detecção opcional de entidades;
+7. Verificação de dados que permaneceram no texto;
+8. Bloqueio de dados potencialmente sensíveis;
+9. Aprovação humana antes do envio;
+10. Auditoria sem armazenamento dos dados pessoais.
+
+---
+
+## 🔄 Pseudonimização
+
+Os dados encontrados são substituídos por identificadores:
+
+```text
+Nome: Maria Souza
+CPF: 529.982.247-25
+Email: maria@empresa.com.br
+```
+
+torna-se:
+
+```text
+Nome: [NOME_1]
+CPF: [CPF_1]
+Email: [EMAIL_1]
+```
+
+O mesmo dado recebe o mesmo marcador durante o processamento, permitindo que o modelo compreenda relações e repetições sem receber o valor original.
+
+Por exemplo:
+
+```text
+João da Silva → [NOME_1]
+
+João da Silva novamente → [NOME_1]
+```
+
+---
+
+## 🤖 Integração com LLM
+
+O Sanitizador pode funcionar como uma camada antes da chamada de um modelo de linguagem.
+
+```text
+Aplicação
+    │
+    ▼
+Sanitizador
+    │
+    ├── Detecta dados
+    ├── Sanitiza
+    ├── Verifica resíduos
+    └── Solicita aprovação
+    │
+    ▼
+API do LLM
+    │
+    ▼
+Resposta sanitizada
+    │
+    ▼
+Restauração local
+    │
+    ▼
+Aplicação
+```
+
+A integração com o provedor de LLM é desacoplada do motor de sanitização, permitindo substituir o provedor sem alterar a lógica principal.
+
+---
+
+## 🧪 Testes
+
+O projeto possui **54 testes automatizados** cobrindo diferentes cenários do sanitizador e do pipeline.
+
+Os testes verificam:
+
+* validadores;
+* diferentes tipos de dados;
+* formatos de Markdown;
+* detecção de vazamentos;
+* normalização de dados;
+* duplicidade de informações;
+* bloqueio de dados sensíveis;
+* isolamento do mapa de substituição;
+* auditoria;
+* integração com o pipeline.
+
+Um dos testes mais importantes verifica que o LLM **nunca recebe os dados originais**.
+
+Nesse teste, um modelo falso armazena tudo que recebe e o teste verifica se algum dado real conseguiu chegar até ele.
+
+---
+
+## 💻 Tecnologias
+
+* **Python 3.9+**
+* Expressões Regulares (Regex)
+* `unittest`
+* JSON
+* APIs de LLM
+* GitHub Actions
+* CLI
+
+O núcleo do sanitizador utiliza apenas a biblioteca padrão do Python.
+
+---
+
+## 🚀 Como executar
+
+Clone o repositório:
 
 ```bash
-git clone <seu-repositorio>
-cd sanitizador-lgpd
-python --version        # precisa ser 3.9 ou superior
+git clone https://github.com/JVCO30/Sanitizador-LGPD.git
+cd Sanitizador-LGPD
 ```
 
-Para usar a API real (opcional):
+Verifique a versão do Python:
 
 ```bash
-pip install anthropic
+python --version
 ```
 
-## Uso rápido (linha de comando)
+O projeto requer Python 3.9 ou superior.
+
+### Executar em modo simulado
+
+O modo simulado permite testar o pipeline sem enviar informações para uma API externa:
 
 ```bash
-# 1) Teste sem enviar nada (LLM simulado, tudo local)
-python pipeline_relatorio.py relatorio_exemplo.txt --termos termos.exemplo.json --simular
-
-# 2) Uso real (copie o exemplo e edite com os SEUS termos; termos.json fica fora do Git)
-cp termos.exemplo.json termos.json
-export ANTHROPIC_API_KEY="sua-chave"          # Windows PowerShell: $env:ANTHROPIC_API_KEY="sua-chave"
-python pipeline_relatorio.py relatorio.txt --termos termos.json
+python pipeline_relatorio.py relatorio_exemplo.txt --simular
 ```
 
-O programa mostra o texto sanitizado e os alertas, e pergunta `Enviar? [s/N]`.
+### Executar os testes
 
-| Opção | Função |
-|---|---|
-| `arquivo` | relatório em `.txt` ou `.md` |
-| `--termos` | JSON com os termos sensíveis do seu negócio |
-| `--simular` | usa um LLM simulado local (nada é enviado) |
-| `--manter-valores` | não mascara valores em R$ |
-| `--auditoria` | arquivo do log de auditoria (padrão: `auditoria.jsonl`) |
-
-> Nunca escreva a chave de API dentro do código.
-
-## `termos.json`
-
-O repositório traz `termos.exemplo.json`. Copie para `termos.json` (já listado no `.gitignore`) e preencha com os termos reais do seu negócio.
-
-```json
-{
-  "EMPRESA": ["Nome da sua empresa", "Sigla"],
-  "CLIENTE": ["Cliente A Ltda"],
-  "PROJETO": ["Codinome do projeto"],
-  "DOCUMENTO": ["REL-2026-00987"],
-  "_ignorar": ["São Paulo", "Razão Social"]
-}
+```bash
+python -m unittest -v
 ```
 
-- Cada chave vira o tipo do marcador (`"CLIENTE"` → `[CLIENTE_1]`). Crie as categorias que precisar.
-- Inclua variações do nome (completo e abreviado). Termos mais longos têm prioridade.
-- `_ignorar` lista alertas que você sabe que são inofensivos, para que a lista de resíduos mostre só o que importa.
+---
 
-## Uso como biblioteca
+## 📚 Uso como biblioteca
+
+O sanitizador também pode ser utilizado diretamente em aplicações Python:
 
 ```python
 from sanitizador import Sanitizador
 
-s = Sanitizador()
-limpo = s.sanitizar("Meu nome é Maria Souza, CPF 529.982.247-25, maria@empresa.com.br")
-# 'Meu nome é [NOME_1], CPF [CPF_1], [EMAIL_1]'
+sanitizador = Sanitizador()
 
-resposta_llm = "Olá [NOME_1], confirmei [EMAIL_1]."
-print(s.restaurar(resposta_llm))   # restauração local
+texto = """
+Meu nome é Maria Souza,
+CPF 529.982.247-25
+e-mail maria@empresa.com.br
+"""
 
-s.sanitizar_json({"cliente": {"nome": "João", "cpf": "52998224725"}})
-# {'cliente': {'nome': '[NOME_2]', 'cpf': '[CPF_1]'}}  (dict/list, recursivo; o mesmo CPF mantém o marcador)
-s.relatorio()                       # {'NOME': 2, 'EMAIL': 1, 'CPF': 2}  (só contagens, acumuladas)
+texto_sanitizado = sanitizador.sanitizar(texto)
+
+print(texto_sanitizado)
 ```
 
-Pipeline completo:
+Resultado:
 
-```python
-from pipeline_relatorio import PipelineResumo, confirmar_no_terminal, llm_anthropic, ErroDeRisco
-
-pipeline = PipelineResumo(
-    termos={"EMPRESA": ["Acme Brasil"]},
-    ignorar_alertas=["São Paulo"],
-    auditoria_path="auditoria.jsonl",
-)
-try:
-    resumo = pipeline.resumir(texto, llm_anthropic, confirmar=confirmar_no_terminal)
-except ErroDeRisco as e:
-    print("Envio bloqueado:", e)
-```
-
-`chamar_llm` é qualquer função `str -> str`. Para usar outro provedor, basta trocar `llm_anthropic` pela sua.
-
-## Testes
-
-```bash
-python -m unittest -v      # roda todos os arquivos test_*.py (54 testes)
-```
-
-Os testes cobrem validadores, cada tipo de dado, formatos de markdown, vazamentos já encontrados em relatórios de teste, normalização de duplicatas, bloqueio de dados sensíveis, isolamento do mapa e auditoria. O mais importante é `test_llm_nunca_ve_dado_real`: um LLM falso guarda tudo o que recebe e o teste verifica que nenhum dado real chegou lá.
-
-## Estrutura
-
-```
-sanitizador.py          motor base (validadores, padrões, rótulos, classe Sanitizador)
-pipeline_relatorio.py   fluxo completo (termos, resíduo, bloqueio, aprovação, auditoria, CLI)
-test_sanitizador.py     testes do motor base
-test_pipeline.py        testes do pipeline
-termos.exemplo.json     modelo de termos (copie para termos.json e edite)
-relatorio_exemplo.txt   relatório fictício de teste
-SECURITY.md             como reportar falhas (sem dados reais!)
-LICENSE                 MIT
-.gitignore              mantém dados reais e logs fora do Git
-.github/workflows/      testes automáticos (Python 3.9 a 3.13)
+```text
+Meu nome é [NOME_1],
+CPF [CPF_1]
+e-mail [EMAIL_1]
 ```
 
 ---
 
-## Limitações (leia antes de usar com dados reais)
+## 🏗️ Estrutura
 
-- **Regex não pega tudo.** Nomes sem rótulo ou gatilho ("Falei com a Ana") só são pegos se estiverem no `termos.json` ou se você conectar um NER. Por isso existem o alerta de resíduo e a aprovação humana.
-- **Pseudonimizado não é anonimizado.** Enquanto o mapa existe em memória, o dado continua pessoal para quem o trata (LGPD, art. 13, §4º). O mapa nunca é gravado em disco nem enviado.
-- **Reidentificação pelo contexto.** Cargo, cidade, data e fatos raros podem identificar alguém mesmo sem nome. Só a revisão humana resolve.
-- **Dados sensíveis (art. 11)** são bloqueados por padrão e exigem decisão explícita (`permitir_sensiveis=True`) e base legal. O alerta é amplo e pode disparar em falsos positivos (ex.: "saúde financeira").
-- **Valores sem `R$`** fora de tabelas com cabeçalho de valor não são mascarados.
-- **Bairro, cidade e estado** não são mascarados por padrão. Adicione ao `termos.json` se necessário.
-- **Formatos:** o script lê texto puro e markdown. Para Word ou PDF, extraia o texto antes.
-- Sempre **revise o texto sanitizado** antes de aprovar o envio. Com dados reais, rode primeiro com `--simular`.
+```text
+Sanitizador-LGPD/
+│
+├── sanitizador.py
+├── pipeline_relatorio.py
+├── test_sanitizador.py
+├── test_pipeline.py
+├── termos.json
+├── relatorio_exemplo.txt
+├── SECURITY.md
+├── LICENSE
+└── .github/
+    └── workflows/
+```
 
-## Privacidade do repositório e contribuições
+### Responsabilidades
 
-- **Todos os dados dos exemplos e dos testes são fictícios.**
-- Guarde relatórios reais, `termos.json` e logs de auditoria fora do Git (o `.gitignore` já cobre `termos.json`, `*.jsonl` e a pasta `privado/`). Use `privado/` para seus arquivos reais.
-- Antes de cada `git push`, confira com `git status` que nenhum arquivo com dado real foi adicionado.
-- Em *issues* e *pull requests*, **nunca cole dados pessoais reais**. Use valores fictícios no mesmo formato.
-- Novos padrões de detecção devem vir com teste. Um bom exemplo é o de placa de carro: adicione o regex em `PADROES` e um teste em `test_sanitizador.py`.
+`sanitizador.py`
+Motor principal de detecção, validação, sanitização e restauração.
 
-## Aviso legal
+`pipeline_relatorio.py`
+Implementação do fluxo completo, incluindo auditoria, análise de resíduos, bloqueios e aprovação.
 
-Este projeto é uma **medida técnica** de minimização e segurança, e **não garante conformidade com a LGPD por si só**. A conformidade também depende de base legal para o tratamento, contrato com o fornecedor da API (com treinamento desativado e retenção mínima), registro das operações, RIPD quando aplicável e validação do jurídico ou do encarregado (DPO). Isto não é aconselhamento jurídico.
+`test_sanitizador.py`
+Testes do motor de sanitização.
 
-## Licença
+`test_pipeline.py`
+Testes do pipeline completo.
 
-MIT. Veja o arquivo [`LICENSE`](LICENSE).
+---
+
+## ⚠️ Limitações
+
+O projeto não garante que todos os dados pessoais serão identificados automaticamente.
+
+Alguns dados podem depender de contexto ou de configurações específicas do negócio.
+
+Por isso, o sistema possui:
+
+* análise de resíduos;
+* possibilidade de adicionar termos personalizados;
+* bloqueio de determinados dados;
+* aprovação humana antes do envio.
+
+**A revisão humana continua sendo necessária antes do envio de informações para uma API externa.**
+
+---
+
+## 🔐 Segurança
+
+Nunca utilize dados pessoais reais nos exemplos ou testes do repositório.
+
+Arquivos contendo informações reais, chaves de API, logs e configurações privadas devem permanecer fora do Git.
+
+Nunca coloque uma chave de API diretamente no código.
+
+---
+
+## ⚖️ Aviso
+
+Este projeto é uma ferramenta técnica de apoio à proteção de dados e **não garante conformidade com a LGPD por si só**.
+
+A conformidade depende também de aspectos jurídicos, organizacionais e técnicos, incluindo bases legais, políticas internas, contratos, gerenciamento de fornecedores e procedimentos de segurança.
+
+---
+
+## 👨‍💻 Sobre o projeto
+
+Projeto desenvolvido como estudo prático de **backend, segurança, privacidade de dados, automação e integração com Inteligência Artificial**.
+
+A proposta é explorar como aplicações podem utilizar LLMs reduzindo a exposição desnecessária de informações pessoais.
+
+---
+
+## 📄 Licença
+
+Este projeto está disponível sob a licença MIT.
