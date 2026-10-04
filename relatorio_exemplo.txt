@@ -1,0 +1,208 @@
+# RELATÓRIO DE CLIENTES E TRANSAÇÕES
+
+**Empresa:** NovaHorizonte Serviços Digitais Ltda.
+**Período:** Janeiro a Setembro de 2026
+**Responsável:** Departamento Administrativo
+**Documento:** REL-2026-00987
+
+---
+
+## 1. Cadastro de Clientes
+
+### Cliente 001
+
+**Nome:** João da Silva
+**CPF:** 123.456.789-00
+**E-mail:** [joao.silva@email.com](mailto:joao.silva@email.com)
+**Telefone:** (33) 99999-1234
+**Data de nascimento:** 15/03/1998
+**CEP:** 39800-000
+**Endereço:** Rua das Acácias, 125
+**Bairro:** Centro
+**Cidade:** Teófilo Otoni
+**Estado:** MG
+**Status:** Ativo
+
+---
+
+### Cliente 002
+
+**Nome:** MARIA DE FÁTIMA OLIVEIRA
+**CPF:** 98765432100
+**E-mail:** maria.oliveira @ email.com
+**Telefone:** 33988887777
+**Data de nascimento:** 22-07-1995
+**CEP:** 39800123
+**Endereço:** Av. Brasil Nº 450, Apt. 302
+**Bairro:** São Cristóvão
+**Cidade:** Teófilo Otoni
+**Estado:** Minas Gerais
+**Status:** ativo
+
+---
+
+### Cliente 003
+
+**Nome:** Carlos Henrique Souza
+**CPF:** 456.789.123-99
+**E-mail:** carlos.souza@email
+**Telefone:** +55 (33) 98888-7654
+**Data de nascimento:** 1990/12/04
+**CEP:** 39800-456
+**Endereço:** Rua Principal, S/N
+**Bairro:** Bela Vista
+**Cidade:** TO
+**Estado:** MG
+**Status:** ATIVO
+
+---
+
+### Cliente 004
+
+**Nome:** Ana Paula Mendes
+**CPF:** 321.654.987-11
+**E-mail:** [ana.paula@email.com](mailto:ana.paula@email.com)
+**Telefone:** (33) 99911-2233
+**Data de nascimento:** 01/01/2001
+**CEP:** 39800-789
+**Endereço:** Rua Minas Gerais, 78
+**Bairro:** Centro
+**Cidade:** Teófilo Otoni
+**Estado:** MG
+**Status:** Inativo
+
+---
+
+### Cliente 005
+
+**Nome:** José Antônio Pereira
+**CPF:** 111.222.333-44
+**E-mail:** [josepereira@email.com](mailto:josepereira@email.com)
+**Telefone:** 33997776655
+**Data de nascimento:** 10/11/1987
+**CEP:** 39800-321
+**Endereço:** Rua do Comércio, 890
+**Bairro:** São Jacinto
+**Cidade:** Teófilo Otoni
+**Estado:** MG
+**Status:** Ativo
+
+---
+
+## 2. Empresas
+
+### Empresa 001
+
+**Razão Social:** Alpha Tecnologia Ltda.
+**Nome Fantasia:** Alpha Tech
+**CNPJ:** 12.345.678/0001-90
+**E-mail:** [contato@alphatech.com.br](mailto:contato@alphatech.com.br)
+**Telefone:** (33) 3333-4455
+**CEP:** 39800-100
+**Endereço:** Avenida Central, 1500
+**Cidade:** Teófilo Otoni
+**Estado:** MG
+**Situação:** ATIVA
+
+---
+
+### Empresa 002
+
+**Razão Social:** Comércio Oliveira e Filhos LTDA
+**Nome Fantasia:** Oliveira & Filhos
+**CNPJ:** 12345678000155
+**E-mail:** contato.oliveira @ empresa.com.br
+**Telefone:** 3334445566
+**CEP:** 39800-200
+**Endereço:** R. do Mercado, 55
+**Cidade:** Teófilo Otoni
+**Estado:** Minas Gerais
+**Situação:** Ativa
+
+---
+
+### Empresa 003
+
+**Razão Social:** Beta Solutions Tecnologia
+**Nome Fantasia:** Beta Solutions
+**CNPJ:** 98.765.432/0001-10
+**E-mail:** [financeiro@betasolutions.com.br](mailto:financeiro@betasolutions.com.br)
+**Telefone:** +55 33 98888-1111
+**CEP:** 39800-300
+**Endereço:** Avenida Getúlio Vargas, 900
+**Cidade:** Governador Valadares
+**Estado:** MG
+**Situação:** INATIVA
+
+---
+
+## 3. Transações
+
+| ID   | Cliente | Data       | Descrição         |       Valor | Status   |
+| ---- | ------- | ---------- | ----------------- | ----------: | -------- |
+| 1001 | 001     | 05/01/2026 | Mensalidade       |   R$ 150,00 | Pago     |
+| 1002 | 002     | 07/01/2026 | Mensalidade       |      250.00 | pago     |
+| 1003 | 003     | 10/01/2026 | Serviço adicional | R$ 1.250,50 | PAGO     |
+| 1004 | 004     | 12/01/2026 | Mensalidade       |      180,00 | pendente |
+| 1005 | 005     | 15/01/2026 | Mensalidade       |    R$150.00 | Pago     |
+| 1006 | 001     | 05/02/2026 | Mensalidade       |      150,00 | pago     |
+| 1007 | 002     | 07/02/2026 | Mensalidade       |   R$ 250,00 | PENDENTE |
+| 1008 | 003     | 10/02/2026 | Serviço adicional |     1250,50 | pago     |
+| 1009 | 004     | 12/02/2026 | Mensalidade       |   R$ 180,00 | Pendente |
+| 1010 | 005     | 15/02/2026 | Mensalidade       |         150 | PAGO     |
+
+---
+
+## 4. Registros com possíveis inconsistências
+
+Os registros abaixo foram identificados durante uma verificação preliminar.
+
+**Registro A**
+
+Nome: joão da silva
+CPF: 12345678900
+E-mail: [JOAO.SILVA@EMAIL.COM](mailto:JOAO.SILVA@EMAIL.COM)
+Telefone: 33999991234
+Cidade: teofilo otoni
+Estado: minas gerais
+
+**Registro B**
+
+Nome: João da Silva
+CPF: 123.456.789-00
+E-mail: [joao.silva@email.com](mailto:joao.silva@email.com)
+Telefone: (33) 99999-1234
+Cidade: Teófilo Otoni
+Estado: MG
+
+**Registro C**
+
+Nome: Maria de Fatima Oliveira
+CPF: 987.654.321-00
+E-mail: [maria.oliveira@email.com](mailto:maria.oliveira@email.com)
+Telefone: 33 98888-7777
+Cidade: Teófilo Otoni
+Estado: MG
+
+**Registro D**
+
+Nome: Maria de Fátima Oliveira
+CPF: 98765432100
+E-mail: maria.oliveira @ email.com
+Telefone: (33) 98888-7777
+Cidade: TO
+Estado: Minas Gerais
+
+---
+
+## 5. Dados financeiros
+
+**Conta:** 001245-8
+**Agência:** 0045
+**Banco:** Banco Exemplo S.A.
+**Chave PIX:** [financeiro@novahorizonte.com.br](mailto:financeiro@novahorizonte.com.br)
+
+**Faturamento Janeiro:** R$ 18.450,75
+**Faturamento Fevereiro:** R$ 21.300,00
+**Faturamento Março:** R$ 19.875,50
+**Faturamento Abril:** R$ 22.10

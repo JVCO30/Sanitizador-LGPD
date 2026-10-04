@@ -1,0 +1,9 @@
+{
+  "EMPRESA": ["Acme Brasil", "Acme"],
+  "CLIENTE": ["Supermercados Horizonte"],
+  "PROJETO": ["Projeto Aurora"],
+  "PRODUTO": ["Linha Premium X"],
+  "_ignorar": ["Teófilo Otoni", "Minas Gerais"],
+  "DOCUMENTO": ["REL-2026-00987"],
+  "BAIRRO": ["Centro", "São Cristóvão", "Bela Vista", "São Jacinto"]
+}
